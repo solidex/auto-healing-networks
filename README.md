@@ -8,7 +8,7 @@ failure.
 2. Ansible pack for Stackstorm
 3. StackStorm ChatOps integration with Slack
 
-#### Installing
+#### Install
 
 ```
 cd /opt/stackstorm/packs/
