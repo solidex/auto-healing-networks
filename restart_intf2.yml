@@ -1,0 +1,16 @@
+- name: Get device information
+  hosts: "{{ device }}"
+  connection: netconf
+  gather_facts: no
+  tasks:
+
+    - name: Set interface disable
+      junos_config:
+        lines:
+          - set interfaces {{ intf_name }} disable
+
+    - name: Set interface enable
+      junos_config:
+        lines:
+          - delete interfaces {{ intf_name }} disable
+

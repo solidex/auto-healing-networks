@@ -1,0 +1,15 @@
+---
+name: repair_interface
+pack: automation_lab
+description: Run action to repair failed network interface
+runner_type: orquesta
+entry_point: workflows/repair_intf.yaml
+enabled: true
+parameters:
+  device:
+    type: string
+  intf_name:
+    type: string
+  timeout:
+    type: integer
+    default: 60

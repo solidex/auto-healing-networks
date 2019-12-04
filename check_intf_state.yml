@@ -1,0 +1,21 @@
+- name: Get device information
+  hosts: "{{ device }}"
+  connection: netconf
+  gather_facts: no
+  tasks:
+
+  - name: collect interface information using rpc
+    junos_rpc:
+      rpc: get-interface-information
+      output: json
+      args:
+        interface-name: "{{ intf_name }}"
+    register: junos_info
+
+  - set_fact:
+      intf_state: "{{ junos_info['output']['interface-information'][0]['physical-interface'][0] }}"
+
+  - copy:
+      content: "{{ intf_state }}"
+      dest: "tmpdata/{{ inventory_hostname }}.json"
+

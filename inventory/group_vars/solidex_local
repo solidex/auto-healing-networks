@@ -1,0 +1,14 @@
+ansible_ssh_user: admin
+ansible_user: admin
+ansible_ssh_password: "Password!"
+ansible_password: "Password!"
+
+ansible_connection: local
+ansible_become: yes
+ansible_become_method: enable
+
+credentials:
+  host: "{{ ansible_host }}"
+  username: admin
+  password: Password!
+  timeout: 20

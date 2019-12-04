@@ -1,0 +1,18 @@
+ios-xe-mgmt.cisco.com netconf_port=10000
+csr1000v.lab.solidex.local ansible_host=172.17.18.195 netconf_port=830 ansible_network_os=ios
+vmx.lab.solidex.local ansible_host=172.17.18.196 netconf_port=830
+qfx.lab.solidex.local ansible_host=172.17.18.197 netconf_port=830
+vmx-141 ansible_host=172.17.18.141 netconf_port=830
+
+[cisco_public]
+ios-xe-mgmt.cisco.com
+
+[solidex_local]
+csr1000v.lab.solidex.local
+vmx.lab.solidex.local
+qfx.lab.solidex.local
+vmx-141
+
+[lab1]
+csr1000v.lab.solidex.local
+vmx.lab.solidex.local

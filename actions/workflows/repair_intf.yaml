@@ -1,0 +1,118 @@
+---
+version: 1.0
+
+input:
+  - intf_name: ""
+  - device: ""
+
+vars:
+  - tries: 0
+  - maxtries: 1
+
+tasks:
+  start:
+    action: core.noop
+    next:
+      - 
+        publish: 
+          - msg: "Получено сообщение, что <% ctx(intf_name) %>@<% ctx(device) %> ==> down"
+        do: 
+          - get_interface_state
+          - notify_slack
+      
+  get_interface_state:
+    action: ansible.playbook
+    input:
+      playbook: "check_intf_state.yml"
+      inventory_file: "inventory/lab.inv"
+      extra_vars:
+        - intf_name=<% ctx(intf_name) %>
+        - device=<% ctx(device) %>
+    next:
+      -
+        when: <% succeeded() %>
+        publish:
+          - msg: "Проверяю текущее состояние <% ctx(intf_name) %>@<% ctx(device) %>"
+
+        do:
+          - analyze_interface_state
+          - notify_slack
+
+  analyze_interface_state:
+    action: core.local
+    input:
+      cwd: "/opt/stackstorm/packs/<% ctx(st2).pack%>/"
+      cmd: cat tmpdata/<% ctx(device) %>.json
+    next:
+      - when: <% result()[stdout]['oper-status'][0][data] = 'down' and ctx("tries") < ctx("maxtries") %>
+        publish: tries=<% ctx().tries + 1 %>
+        do:
+          - restart_interface
+
+      - when: <% result()[stdout]['oper-status'][0][data] != 'down' and ctx("tries") = 0%>
+        publish:
+          - out: <% result().stdout %>
+        do:
+          - fp_interface_is_up
+
+      - when: <% result()[stdout]['oper-status'][0][data] != 'down' and ctx("tries") != 0%>
+        publish:
+          - out: <% result().stdout %>
+        do:
+          - interface_is_up
+
+      - when: <% result()[stdout]['oper-status'][0][data] = 'down' and ctx("tries")>=ctx("maxtries") %>
+        publish:
+          - out: <% result().stdout %>
+        do:
+          - remediation_failure
+      - publish:
+          - msg: "Железка говорит, что <% ctx(intf_name) %>@<% ctx(device) %> ==> <% result()[stdout]['oper-status'][0][data] %>"
+        do:
+          - notify_slack
+
+  restart_interface:
+    action: ansible.playbook
+    input:
+      playbook: "restart_intf2.yml"
+      inventory_file: "inventory/lab.inv"
+      extra_vars:
+        - intf_name=<% ctx(intf_name) %>
+        - device=<% ctx(device) %>
+    next: 
+      - when: <% succeeded() %>
+        publish:
+          - msg: "Интерфейс <% ctx(intf_name) %>@<% ctx(device) %> перезапущен"
+        do: 
+          - get_interface_state
+          - notify_slack
+
+  fp_interface_is_up:
+    next:
+      -
+        publish:
+          - msg: "Ложное срабатывание?! Состояние <% ctx(intf_name) %>@<% ctx(device) %> ==> <% ctx(out)['oper-status'][0][data] %>"
+        do:
+          - notify_slack
+
+  interface_is_up:
+    next:
+      - 
+        publish:
+          - msg: "Проблема решена! Состояние <% ctx(intf_name) %>@<% ctx(device) %> ==> <% ctx(out)['oper-status'][0][data] %>"
+        do:
+          - notify_slack
+
+  remediation_failure:
+    next:
+      - 
+        publish:
+          - msg: "___HELP___ Состояние <% ctx(intf_name) %>@<% ctx(device) %> ==> <% ctx(out)['oper-status'][0][data] %>"
+        do:
+          - notify_slack
+
+  notify_slack:
+    action: chatops.post_message
+    input:
+      channel: automation-lab
+      message: <% ctx("msg") %>

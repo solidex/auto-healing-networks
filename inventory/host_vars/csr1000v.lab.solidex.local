@@ -1,0 +1,4 @@
+interface:
+  name: GigabitEthernet2
+  description: 'To vmx'
+  ip: 192.168.12.2/24

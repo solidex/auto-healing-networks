@@ -1,0 +1,4 @@
+interface:
+  name: ge-0/0/2
+  description: 'To crs1000v'
+  ip: 192.168.12.1/24
