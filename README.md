@@ -1,8 +1,5 @@
 # Auto-healing networks
 
-
-## What is it?
-
 This is a Stackstorm pack to demonstrate how a network can recover from router interface
 failure.
 
@@ -23,3 +20,4 @@ st2 action create actions/repair_intf.yaml
 #### Run
 ```
 st2 run automation_lab.repair_interface intf_name="ge-0/0/2" device="vmx-141"
+```
